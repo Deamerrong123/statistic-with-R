@@ -1,0 +1,212 @@
+---
+title: "Finding Your Center"
+output: html_notebook
+---
+
+
+
+## The Average in R : **mean()**
+
+R provides an extremely strightforward way of calculating the mean of a set of numbers : _mean()_.
+Here is the example of the hights of six children.
+```{r}
+heights <- c(36,42,43,37,40,45)
+```
+Then _mean()_ function will output the average of this data.
+```{r}
+mean(heights)
+```
+
+### conditing
+
+For the discussion that follows, we use the same *Cars93* data frame that we use in last section. It's the one that has data for a sample 93 cars from 1993. It's in the MASS packege. So make sure to include the MASS packege in the library.
+```{r}
+library("MASS")
+```
+
+Now, suppose we are interesting in the average horsepower of the cars made in the USA. First we select those cars and put their horsepowers into a vector:
+
+```{r}
+Horsepower.USA <- Cars93$Horsepower[Cars93$Origin == "USA"]
+```
+
+The average horsepower is then
+```{r}
+mean(Horsepower.USA)
+```
+
+How about the average for cars not made in the USA:
+```{r}
+Horsepower.NonUSA <- Cars93$Horsepower[Cars93$Origin == "non-USA"]
+mean(Horsepower.NonUSA)
+```
+
+### Eliminate $-sign forth *with()*
+
+In the preceding R-code, the $-signs denote variables in the _Cars93_ data frame. R provides a way out of using the name of the data frame each time we refer to one of its variable.
+
+The function _with()_ does this for other R functions. The first argumnet is the data source, and the second argument is the function to apply to a variable in that data source.
+
+For example, to find the mean horsepower of USA cars in Cars93:
+```{r}
+with(Cars93, mean(Horsepower[Origin == "USA"]))
+```
+
+What about multiple conditions, like the average horsepower of USA 4-Cylinder cars?
+
+```{r}
+with(Cars93,mean(Horsepower[Origin == "USA" & Cylinders == 4]))
+```
+
+### Exploring the data
+
+Now that we've examined the horsepower means of USA and non-USA cars, how about the overall distribution?
+
+We are still using the _ggplot()_ to create side-by-side histograms from the Cars93 frame so that we can compare them.
+
+First, have to notice and have included the *ggplot()* package.
+```{r}
+library("ggplot2")
+ggplot(Cars93,aes(x = Horsepower)) + geom_histogram(color = "black" , fill = "white",binwidth = 10)
+```
+
+The code so far creates an orignary histogram with _Horsepower_ on the x-axis. How can we create that split the the data bese on the origin, like *USA* and *non-USA*? To do that, I add a ggplot capabiilty called *faceting*. Simply put, faceting splits the data according to a norminal variable -- like *Origin*, which is either "USA" or "non-USA" A couple of faceting function are available. The one we use here is call *facet_wrap()*. To split the data according to *Origin*, it's
+```{r}
+facet_wrap(~Origin)
+```
+
+Altogether,
+```{r}
+ggplot(Cars93,aes(x = Horsepower)) + geom_histogram(color = "black" , fill = "white",binwidth = 10) + facet_wrap(~Origin)
+```
+
+### Outliers : The flaw of averages
+
+An outliers is an extreme value in a data set. If the data is a sample and you're trying to estimate the population mean, the outlier might bias the estimate.
+
+statisticians deal with outliers by _trimming_ the mean -- eliminating extreme values at the low end and high end before calculating the sample maen. The amount of trim is a percentage, like the upper and lower 5 percent of the scores.
+
+For example, the histogram on the left (*above*) shows some extreme values. To trim the upper and lower 5 percent, We add the *trim* argument to *mean()*:
+```{r}
+mean(Horsepower.NonUSA,trim = .05)
+```
+
+## The Median in R : median()
+
+With larger data sets, you might encounter replication of scores. In any case, the median is still the middle value. For example, here are the horsepowers for 4-cylinder cars in _Cars93_ : 
+```{r}
+Horsepower.Four <- with(Cars93, Horsepower[Cylinders == 4])
+sort(Horsepower.Four)
+
+median(Horsepower.Four)
+```
+
+## The Mode in R
+
+Base R does not provide a function for finding the mode. It does have a function called _mode()_, but it's for something much different. Instead, you need a package called _modeest_ in your library. (On the Packages tab, select Install, and then in the Install dialog box, type **modeest** in the Packages box and click Install. Then check its check box when it appear on the Packages tab.)
+
+```{r}
+#library("modeest")
+```
+
+One function in the modeest package is called _mfv()_("most frequent value"), and that's the one we need. Here's a vector with two modes(2 and 4):
+```{r}
+scores <- c(1,2,2,2,3,4,4,4,5,6)
+#mfv(scores)
+```
+
+
+## Deviating from the Average
+
+
+### Measuring variation
+
+Suppose we are measuring the heights of group of children and we find that their height (in inches) are
+
+48, 48 , 48, 48, 48, and 48
+
+Then we measure another group and find that their heights are
+
+50,47,52,46, and 45
+
+In fact, the mean of each group are the same. Just looking at the numbers tells you the two groups of heights are different: The heights in the first group are all the same, whereeas the heights in the second vary quite a bit.
+
+#### Averaging square derivations : Variance and how to calculate it
+
+One way to know the dissimilarity between the two groups is to examine the deviations in each one. Think of a "deviation" as the difference between a score and the mean of all the scores in a group.
+
+like, calculating the population variance is 
+
+$\sigma^2 = \frac{\sum(X-\bar X)^2}{N} $
+
+And because we are working with a characteristic of a sample (rather than of a population), we use the English equivalent of the Greek letter -- s rather than $\sigma$. This means that the formula for the sample variance is
+
+\[
+    s^2 = \frac{\sum(X-\bar X)^2}{N-1}
+\]
+
+#### Variance in R
+```{r}
+heights <- c(50,47,52,46,45)
+var(heights)
+```
+
+If we were going to work with this kind of variance frequently, I'd define a function *var.p():
+```{r}
+var.p <- function(x) {
+  var(x) * (length(x) -1 ) / length(x)
+}
+```
+
+And here's how to use it:
+
+```{r}
+var.p(heights)
+```
+
+
+#### Standard Derivation in R
+```{r}
+sd(heights)
+```
+
+Again, if you're going to use this one frequently, defining a function is a good idea:
+```{r}
+sd.p <- function(x){
+  sd(x) * sqrt((length(x)-1)/length(x))
+}
+```
+
+And here's how you use this function:
+```{r}
+sd.p(heights)
+```
+
+
+#### Conditioning
+
+We calculate the variance of the horsepowers of cars that originate in the USA. Using *with()* function:
+```{r}
+with(Cars93 , var(Horsepower[Origin =="USA"]))
+```
+
+How many of those cars are in this group?
+
+```{r}
+with(Cars93,length(Horsepower[Origin == "USA"]))
+```
+
+How about the non-USA cars?
+
+```{r}
+with(Cars93,var(Horsepower[Origin == "non-USA"]))
+with(Cars93,length(Horsepower[Origin == "non-USA"]))
+```
+
+
+
+
+
+
+
+

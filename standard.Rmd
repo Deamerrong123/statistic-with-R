@@ -1,0 +1,127 @@
+---
+title: "Meeting standards and Standings"
+output: html_notebook
+---
+
+## Catching some Z's
+A number in isolation doesn't provide much information. To fully understand what a number means, we have to take into account the process that produced it. To compare one number to another, they have to be on the same scale.
+
+When it's not clear-cut, we can use the mean and standard derivation to standardize scores that come from different processes. The idea is to take a set of scores and use its mean as a zero point, and its standard deriation sa a unit of measure. Then we make comparisons : calculate the derivation of each score from the mean, and then you compare that deviation to the standard deviation. 
+
+To make a comparisons, we divide the score's deviation by the standard deviation. This transforms the score into another kind of score. The transformed score is called a *standard score*, or a *z-score*.
+
+The formula for this is (for sample)
+\[
+  z = \frac{X-\bar X}{s}
+\]
+(for population) 
+\[z = \frac{X-\mu} {\sigma}\]
+
+### Characteristics of z-scores
+
+A z-score can be positive, negative, or zero. A negative z-score represents a score that's less than the mean, and a positive z-score represents a score that's greater than the mean. 
+
+When we calculate the z-scores for every score in the set, the mean of the z-scores is 0, and the standard deviation of the z-scores is 1.
+
+
+## Standard Scores in R
+
+The R function for calculating standard scores is called *scale()*. Supply a vector of scores, and *scale()* returns a vector of z-scores along with, helpfully, the mean and standard deviation.
+
+To show *scale()* in action, we isolate a subset of the *Car93* data frame. Specifically, We create a vetor of the horsepower of 8-cylinder cars from the USA: 
+```{r}
+# include the MASS library, which contain Cars93 data.
+library("MASS")
+Horsepower.USA.Eight <- with(Cars93,Horsepower[Origin == "USA" & Cylinders == 8])
+Horsepower.USA.Eight
+```
+
+And now for the z-scores :
+```{r}
+scale(Horsepower.USA.Eight)
+```
+The last value is s, not \[\sigma\]. If you have to base your z-scores on \[\sigma\], divide each element in the vector by the square **(N-1)/N**:
+
+```{r}
+N <- length(Horsepower.USA.Eight)
+scale(Horsepower.USA.Eight)/sqrt((N-1)/N)
+```
+
+
+## Where Do you stand?
+
+Standard scores show you how a score stands in relation to another scores in the same group. To do this, they use the standard deviation as a unit of measure.
+
+We also, can determine the score's rank within the group : in ascending order, the lowest score has a rank of 1, the second lowest has a rank of 2 and so on. In descending order, the highest score is ranked 1, the second highest 2, and so on.
+
+### Ranking in R
+
+the *rank()* function ranks the scores in a vector. The default order is ascending: 
+```{r}
+Horsepower.USA.Eight
+rank(Horsepower.USA.Eight)
+```
+
+For descending order, put a minus sign (-) in front of the vector name: 
+```{r}
+rank(-Horsepower.USA.Eight)
+```
+ 
+ ### Tie scores
+ 
+ R handles ties scores by including the optional *ties*. Method argument in *rank()*. To show how this work, we create a new vector that replaces the sixth value (210) in *Horsepower.USA.Eight* with 200:
+```{r}
+tied.Horsepower <- replace(Horsepower.USA.Eight,6,200)
+tied.Horsepower
+```
+
+One way of dealing with tied scores is to give each tied score the average of the rank they would have attained. So the two scores of 200 would have been ranked 3 and 4, and their average 3.5 is what this method assigns to both of them:
+```{r}
+rank(tied.Horsepower,ties.method = "average")
+```
+
+another method assigns the minimum of the rank:
+```{r}
+rank(tied.Horsepower,ties.method = "min")
+```
+and still another assigns the maximum of the ranks:
+```{r}
+rank(tied.Horsepower, ties.method =  "max")
+```
+
+### Percentiles
+Closely realted to rank is the *percentile*, which represents a score's standing in the group as the percent of scores below it. If you've taken standardized tests like the SAT, you've encountered percentiles. An SAT score in the 80th percentile is highter than 80 percent of the other SAT scores.
+
+The function *quantile()* calculates percentiles. If left to its own devices, it calculates the 0th , 25th , 75th, and 100th percentiles. It calculates the percentiles in a manner that's ocnsistent with "inclusive" and (if necessary) interpolates values for the percentiles.
+
+First, sorting the _Horsepower.USA.Eight_ vector so that we see the scores in order and compare with the percentiles:
+```{r}
+sort(Horsepower.USA.Eight)
+```
+
+And now the percentiles:
+```{r}
+quantile(Horsepower.USA.Eight)
+```
+
+Notice that the 25th, 50th , and 75th percentiles are values that aren't in the vector.
+
+To calculate percentiles consistent with "exclusive", add the type argument and set it equal to *6*:
+```{r}
+quantile(Horsepower.USA.Eight,type = 6)
+```
+
+We can get *quantitle()* to return any percentile. suppose we want to find the 54th, 68th, and 91st percentiles. Include a vector of those numbers and we are in business:
+```{r}
+quantile(Horsepower.USA.Eight,c(.54,.68,.91 ))
+```
+
+
+
+
+
+
+
+
+
+
