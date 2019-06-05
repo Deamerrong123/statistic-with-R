@@ -1,0 +1,139 @@
+---
+title: "Summarizing it All"
+output:  html_document
+---
+
+## How many ?
+
+We are still using the same dataset. *"MASS"*, remember to include the _libray("MASS")_.
+```{r}
+library("MASS")
+```
+
+_Cars93_ holds data to 27 variables for 93 cars available in 1993.
+```{r}
+length(Cars93)
+```
+
+So *length()* returns the number of variables in the data frame. The function _ncol()_ does the same thing:
+```{r}
+ncol(Cars93)
+```
+
+Find the row of the dataset, *nrow()*
+```{r}
+nrow(Cars93)
+```
+
+To count the number of USA-originated cars, then we state the condition and then add up all the 1s:
+```{r}
+sum(Cars93$Origin == "USA")
+```
+
+To count the number of non-USA cars in the data frame, we can change the condition to "non-USA", of course, or we can use *!=* -- the "not equal" operation:
+```{r}
+sum(Cars93$Origin != "USA")
+```
+
+Addition conditioning, the number of 4-cylinder USA cars:
+```{r}
+sum(Cars93$Origin == "USA" & Cars93$Cylinders == 4)
+```
+
+or, we can also do it (without $-sign):
+```{r}
+with(Cars93,sum(Origin == "USA" & Cylinders == 4))
+```
+
+
+## The High and the low
+
+Two descriptive statistics that need no introduction are the maximum and minimum value in a set of scores:
+```{r}
+Horsepower.USA.Four <- with(Cars93, Horsepower[Origin == "USA" & Cylinders == 4])
+max(Horsepower.USA.Four)
+min(Horsepower.USA.Four)
+```
+
+If we happen to need both values at the same time:
+```{r}
+range(Horsepower.USA.Four)
+```
+
+
+## The Moment
+
+In statistics, moments are quantities that are related to the shape of a set of numbers. By "shape of a set of numbers," I mean "what a histogram based on the number looks like" -- how spread out it is, how symmetric it is, and more.
+
+A _row moment_ of order k is athe average of all numbers in the set, with each number raised to the kth power before we average it.So the *first* raw moment is the arithmetic mean. The *scound* raw moment is the average of the squared scores. The *third* raw moment is the average of the ucbed scores, and so on.
+
+A *central moment* is based on the average of *deviations* of numbers from their mean. If we square the deviations before we average them, we have the *scond* central moment. If we cube the deviations before we averagt them, that's the *third* central moment. raise each one to fourth power before we average them, then we have the *forth* central moment.
+
+### A teachable moment
+
+Here is a function for calculating a central moment of a vector:
+```{r}
+cen.mom <- function(x,y) {
+  mean((x-mean(x))^y)
+}
+```
+
+Here are the second, third, and fourth central moments:
+```{r}
+Horsepower.USA <- with(Cars93,Horsepower[Origin == "USA"])
+cen.mom(Horsepower.USA,2)
+cen.mom(Horsepower.USA,3)
+cen.mom(Horsepower.USA,4)
+```
+
+
+## Skewness
+
+For the symmetric histogram, the skewness is **0**. For the histogram -- the one that tails off to the right -- the value of the skewness statistic is *positive*. It's also said to be "skewed to the right" for the third histogram (which tails off to the left), the value of the skewness statistic is *negative*. It's also said to be "skewed to the left".
+
+Now for a formula. let it be $M_k$ represent the kth central moment. To calculate skewness, it's
+
+\[
+skewness = \frac{\sum(X-\bar X)^3}{(N-1)s^3}
+\]
+
+In English, the skewness of a set of numbers is the third central moment divided by the second central moment raised to the three-halves power. With R function we have defined:
+```{r}
+cen.mom(Horsepower.USA,3)/cen.mom(Horsepower.USA,2)^1.5
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
